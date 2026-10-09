@@ -16,16 +16,10 @@ RUN --mount=type=cache,target=/root/.npm npm ci
 FROM base AS final
 WORKDIR /app
 
-# 1. Копируем зависимости (этот слой кэшируется, если package.json не менялся)
 COPY --from=builder /app/node_modules ./node_modules
 
-# 2. Устанавливаем браузер. 
-# Мы НЕ используем здесь cache-mount, чтобы браузер гарантированно попал ВНУТРЬ образа.
-# Docker BuildKit всё равно закэширует этот слой. При make clean (docker rmi) 
-# слой не удаляется из кэша сборщика, поэтому при следующем make build будет статус CACHED.
 RUN npx playwright install chromium
 
-# 3. Копируем исходный код (самый нижний, часто меняющийся слой)
 COPY src/ ./src/
 
 RUN mkdir -p /app/out
