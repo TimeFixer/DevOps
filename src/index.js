@@ -3,15 +3,16 @@ const fs = require('fs').promises;
 const path = require('path');
 
 (async () => {
-  const browser = await chromium.launch();
+  const browser = await chromium.launch({
+    executablePath: '/usr/bin/chromium'
+  });
+  
   const page = await browser.newPage();
   
   try {
     await page.goto('https://quotes.toscrape.com/scroll', { waitUntil: 'networkidle' });
-    // Ждем появления цитат
     await page.waitForSelector('.quote');
     
-    // Собираем данные
     const quotes = await page.evaluate(() => {
       return Array.from(document.querySelectorAll('.quote')).map(el => ({
         text: el.querySelector('.text').innerText,
@@ -20,7 +21,6 @@ const path = require('path');
       }));
     });
 
-    // Создаем директорию out, если её нет, и записываем файл
     const outDir = path.join(__dirname, '..', 'out');
     await fs.mkdir(outDir, { recursive: true });
     await fs.writeFile(path.join(outDir, 'result.json'), JSON.stringify(quotes, null, 2));
