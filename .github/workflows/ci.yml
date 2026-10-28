@@ -12,5 +12,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      # Вот этого шага у тебя не хватает в воркфлоу:
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_wrapper: false
+
       - name: Run Make CI
         run: make ci
