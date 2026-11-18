@@ -1,0 +1,16 @@
+services:
+  aws-local:
+    image: floci/floci:2.2.0
+    container_name: floci
+    ports:
+      - "4566:4566"
+    environment:
+      - AWS_ACCESS_KEY_ID=test
+      - AWS_SECRET_ACCESS_KEY=test
+      - AWS_DEFAULT_REGION=us-east-1
+    networks:
+      - floci-net
+
+networks:
+  floci-net:
+    name: floci-net

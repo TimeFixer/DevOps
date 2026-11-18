@@ -19,4 +19,4 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY src ./src
 
 RUN mkdir -p /app/out
-CMD ["node", "src/index.js"]
+CMD ["node", "src/worker.js"]
