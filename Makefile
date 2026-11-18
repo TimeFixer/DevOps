@@ -38,7 +38,10 @@ deploy: build
 
 # 4. Отправка тестового задания в SQS и проверка результата в S3
 run:
-	docker run --rm --network floci-net -v $(CURDIR)/out:/app/out -e AWS_ACCESS_KEY_ID=test -e AWS_SECRET_ACCESS_KEY=test -e AWS_REGION=us-east-1 -e AWS_ENDPOINT_URL=http://floci:4566 -e S3_BUCKET_NAME=$$(cd infra && terraform output -raw bucket_name) -e SQS_QUEUE_URL=$$(cd infra && terraform output -raw queue_url) $(IMAGE_NAME) node src/send-task.js
+	docker run --rm --network floci-net -v $(CURDIR)/out:/app/out -e AWS_ACCESS_KEY_ID=test -e AWS_SECRET_ACCESS_KEY=test \
+	-e AWS_REGION=us-east-1 -e AWS_ENDPOINT_URL=http://floci:4566 \
+	-e S3_BUCKET_NAME=$$(cd infra && terraform output -raw bucket_name) \
+	-e SQS_QUEUE_URL=$$(cd infra && terraform output -raw queue_url) $(IMAGE_NAME) node src/send-task.js
 # 5. Очистка локальных артефактов
 clean:
 	-@docker rm -f $(WORKER_CONTAINER) >/dev/null 2>&1 || true

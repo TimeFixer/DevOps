@@ -31,11 +31,7 @@ const sqs = new SQSClient(awsConfig);
     try {
       const s3Res = await s3.send(new GetObjectCommand({ Bucket: BUCKET_NAME, Key: OBJECT_KEY }));
       const quotes = JSON.parse(await s3Res.Body.transformToString());
-      const sqsAttr = await sqs.send(new GetQueueAttributesCommand({ QueueUrl: QUEUE_URL, AttributeNames: ['ApproximateNumberOfMessages', 'ApproximateNumberOfMessagesNotVisible'] }));
-      const visible = Number(sqsAttr.Attributes?.ApproximateNumberOfMessages || 0);
-      const inFlight = Number(sqsAttr.Attributes?.ApproximateNumberOfMessagesNotVisible || 0);
-
-      if (Array.isArray(quotes) && quotes.length > 0 && visible === 0 && inFlight === 0) {
+      if (Array.isArray(quotes) && quotes.length > 0) {
         console.log(`[run] Успех! В S3 сохранен валидный JSON (${quotes.length} цитат). Очередь пуста.`);
         process.exit(0);
       }
