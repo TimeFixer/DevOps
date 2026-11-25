@@ -1,0 +1,47 @@
+---
+services:
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
+    expose:
+      - "6379"
+    volumes:
+      - redis_data:/data
+      - ./redis.conf:/usr/local/etc/redis/redis.conf:ro
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+  scraper:
+    build: ..
+    image: quotes-scraper:latest
+    depends_on:
+      redis:
+        condition: service_healthy
+    environment:
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
+      REDIS_STREAM: jobs
+      REDIS_GROUP: scrapers
+      CONSUMER_NAME: worker-1
+      RESULTS_DIR: /results
+    volumes:
+      - /srv/quotes-scraper/results:/results
+    restart: unless-stopped
+
+  nginx:
+    image: nginx:1.27-alpine
+    depends_on:
+      - scraper
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - /srv/quotes-scraper/results:/usr/share/nginx/html/results:ro
+    restart: unless-stopped
+
+volumes:
+  redis_data:

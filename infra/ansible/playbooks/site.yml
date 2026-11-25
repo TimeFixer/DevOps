@@ -1,0 +1,17 @@
+---
+- name: Provision server and deploy quotes scraper
+  hosts: scraper_vm
+  remote_user: admin
+  become: true
+  vars:
+    repo_root: "{{ playbook_dir }}/../../.."
+    admin_ssh_pubkey_path: "{{ playbook_dir }}/../../../.lab/id_ed25519.pub"
+  roles:
+    - role: bootstrap
+      tags: [bootstrap]
+    - role: ssh_hardening
+      tags: [ssh_hardening]
+    - role: docker_engine
+      tags: [docker_engine]
+    - role: scraper
+      tags: [scraper]

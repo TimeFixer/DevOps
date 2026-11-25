@@ -1,0 +1,50 @@
+---
+- name: Create application and results directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+  loop:
+    - /srv/quotes-scraper
+    - /srv/quotes-scraper/app
+    - /srv/quotes-scraper/app/src
+    - /srv/quotes-scraper/app/deploy
+    - /srv/quotes-scraper/results
+
+- name: Sync application source files
+  ansible.builtin.copy:
+    src: "{{ repo_root }}/{{ item }}"
+    dest: "/srv/quotes-scraper/app/{{ item }}"
+    owner: root
+    group: root
+    mode: "0644"
+  loop:
+    - Dockerfile
+    - .dockerignore
+    - package.json
+    - src/index.js
+    - src/worker-redis.js
+  notify: Rebuild scraper image
+
+- name: Sync deployment configs
+  ansible.builtin.copy:
+    src: "{{ repo_root }}/{{ item }}"
+    dest: "/srv/quotes-scraper/app/{{ item }}"
+    owner: root
+    group: root
+    mode: "0644"
+  loop:
+    - deploy/compose.yaml
+    - deploy/nginx.conf
+    - deploy/redis.conf
+  notify: Restart compose stack
+
+- name: Ensure compose stack is up
+  community.docker.docker_compose_v2:
+    project_src: /srv/quotes-scraper/app/deploy
+    files:
+      - compose.yaml
+    build: policy
+    state: present

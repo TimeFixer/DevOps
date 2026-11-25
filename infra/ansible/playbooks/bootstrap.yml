@@ -1,0 +1,34 @@
+---
+- name: Create admin user via bootstrap account
+  hosts: scraper_vm
+  remote_user: bootstrap
+  become: true
+  vars:
+    admin_ssh_pubkey_path: "{{ playbook_dir }}/../../../.lab/id_ed25519.pub"
+  roles:
+    - bootstrap
+
+- name: Verify real SSH reconnection as admin
+  hosts: scraper_vm
+  remote_user: admin
+  gather_facts: false
+  tasks:
+    - name: Reset SSH connection
+      ansible.builtin.meta: reset_connection
+
+    - name: Verify admin identity over SSH
+      ansible.builtin.command: whoami
+      register: whoami_out
+      changed_when: false
+
+    - name: Assert connected user is admin
+      ansible.builtin.assert:
+        that:
+          - whoami_out.stdout == "admin"
+
+- name: Harden SSH and disable bootstrap account
+  hosts: scraper_vm
+  remote_user: admin
+  become: true
+  roles:
+    - ssh_hardening

@@ -1,0 +1,15 @@
+---
+- name: Rebuild scraper image
+  community.docker.docker_compose_v2:
+    project_src: /srv/quotes-scraper/app/deploy
+    files:
+      - compose.yaml
+    build: always
+    state: present
+
+- name: Restart compose stack
+  community.docker.docker_compose_v2:
+    project_src: /srv/quotes-scraper/app/deploy
+    files:
+      - compose.yaml
+    state: restarted

@@ -6,3 +6,5 @@ out/
 crash.log
 *.tfvars
 .env
+.lab/
+infra/ansible/inventories/lab/

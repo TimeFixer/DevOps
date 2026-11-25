@@ -1,0 +1,25 @@
+---
+- name: Create admin user
+  ansible.builtin.user:
+    name: admin
+    shell: /bin/bash
+    groups: sudo
+    append: true
+    create_home: true
+    state: present
+
+- name: Install authorized SSH key for admin
+  ansible.posix.authorized_key:
+    user: admin
+    key: "{{ lookup('ansible.builtin.file', admin_ssh_pubkey_path) }}"
+    state: present
+    exclusive: true
+
+- name: Configure passwordless sudo for admin
+  ansible.builtin.copy:
+    dest: /etc/sudoers.d/admin
+    content: "admin ALL=(ALL) NOPASSWD:ALL\n"
+    owner: root
+    group: root
+    mode: "0440"
+    validate: /usr/sbin/visudo -cf %s

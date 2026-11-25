@@ -1,0 +1,39 @@
+---
+- name: Verify server configuration and security invariants
+  hosts: scraper_vm
+  remote_user: admin
+  become: true
+  tasks:
+    - name: Verify sshd config is valid
+      ansible.builtin.command: /usr/sbin/sshd -t
+      changed_when: false
+
+    - name: Verify admin is not in docker group
+      ansible.builtin.command: id -nG admin
+      register: admin_groups
+      changed_when: false
+
+    - name: Assert admin does not belong to docker group
+      ansible.builtin.assert:
+        that:
+          - "'docker' not in admin_groups.stdout.split()"
+
+    - name: Check Docker service status
+      ansible.builtin.service_facts:
+
+    - name: Assert Docker service is running
+      ansible.builtin.assert:
+        that:
+          - ansible_facts.services['docker.service'].state == 'running'
+
+    - name: Check Redis port 6379 is not published on host
+      become: true
+      ansible.builtin.command: docker compose -f /srv/quotes-scraper/app/deploy/compose.yaml port redis 6379
+      register: redis_port
+      failed_when: false
+      changed_when: false
+
+    - name: Assert Redis port is not published
+      ansible.builtin.assert:
+        that:
+          - redis_port.stdout.split(':')[0] | trim == ''

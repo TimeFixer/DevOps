@@ -1,22 +1,28 @@
+---
 name: CI
 
-on:
+"on":
   pull_request:
-    branches:
-      - main
+    branches: [main]
+  push:
+    branches: [feat/ansible-deploy]
 
 jobs:
-  build-and-test:
+  lint-and-validate:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      # Вот этого шага у тебя не хватает в воркфлоу:
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
-          terraform_wrapper: false
+          python-version: "3.12"
 
-      - name: Run Make CI
+      - name: Install Ansible and linters
+        run: |
+          pip install --upgrade pip
+          pip install ansible ansible-lint yamllint
+
+      - name: Run Makefile CI checks
         run: make ci

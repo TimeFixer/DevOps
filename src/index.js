@@ -5,13 +5,14 @@ const path = require('path');
 (async () => {
   // Указываем путь к системному Chromium, установленному в Docker через apt-get
   const browser = await chromium.launch({
-    executablePath: '/usr/bin/chromium'
+    executablePath: process.env.CHROMIUM_PATH || undefined
   });
   
   const page = await browser.newPage();
   
   try {
-    await page.goto('https://quotes.toscrape.com/scroll', { waitUntil: 'networkidle' });
+    const targetUrl = process.env.SCRAPE_URL || 'https://quotes.toscrape.com/scroll';
+    await page.goto(targetUrl, { waitUntil: 'networkidle' });
     
     // Ждем появления первых цитат
     await page.waitForSelector('.quote');
@@ -40,10 +41,9 @@ const path = require('path');
       }));
     });
 
-    // Создаем директорию out и записываем результат
-    const outDir = path.join(__dirname, '..', 'out');
-    await fs.mkdir(outDir, { recursive: true });
-    await fs.writeFile(path.join(outDir, 'result.json'), JSON.stringify(quotes, null, 2));
+    const outputFile = process.env.OUTPUT_PATH || path.join(__dirname, '..', 'out', 'result.json');
+    await fs.mkdir(path.dirname(outputFile), { recursive: true });
+    await fs.writeFile(outputFile, JSON.stringify(quotes, null, 2));
     
     console.log(`Успешно сохранено ${quotes.length} цитат.`);
   } catch (error) {
