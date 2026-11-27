@@ -16,7 +16,8 @@ provision:
 		if curl -s http://localhost:4566 >/dev/null 2>&1; then break; fi; \
 		sleep 1; \
 	done
-	cd infra && terraform init && terraform apply -auto-approve
+	@test -d infra/.terraform || terraform -chdir=infra init -input=false
+	terraform -chdir=infra apply -auto-approve
 
 # 3. Сборка и запуск фонового воркера с подключением к сети floci-net
 deploy: build
